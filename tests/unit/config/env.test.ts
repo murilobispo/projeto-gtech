@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it } from 'vitest'
-import { requiredEnv } from './env'
+import { requiredEnv } from '@/config/env'
 
 const envName = 'TEST_PORT'
 const originalValue = process.env[envName]
