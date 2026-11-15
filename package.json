@@ -1,0 +1,37 @@
+{
+  "name": "projeto-gtech",
+  "version": "1.0.0",
+  "description": "Encurtador de links GTech — Projeto B (Full Cycle · Módulo 4)",
+  "main": "src/server.ts",
+  "scripts": {
+    "dev": "tsx watch --env-file-if-exists=.env src/server.ts",
+    "start": "tsx --env-file-if-exists=.env src/server.ts",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "biome check ."
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/murilobispo/projeto-gtech.git"
+  },
+  "keywords": [],
+  "author": "murilobispo",
+  "license": "ISC",
+  "type": "module",
+  "bugs": {
+    "url": "https://github.com/murilobispo/projeto-gtech/issues"
+  },
+  "homepage": "https://github.com/murilobispo/projeto-gtech#readme",
+  "dependencies": {
+    "express": "^5.3.0"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.6.8",
+    "@types/express": "^5.0.6",
+    "@types/node": "^26.6.6",
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2",
+    "vitest": "^5.1.0"
+  }
+}
