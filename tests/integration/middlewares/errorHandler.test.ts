@@ -12,6 +12,9 @@ app.get('/boom', () => {
 app.get('/crash', () => {
   throw new Error('segredo interno')
 })
+app.get('/ruim', () => {
+  throw Object.assign(new Error('JSON malformado'), { status: 400 })
+})
 app.use(errorHandler)
 
 describe('errorHandler', () => {
@@ -27,5 +30,12 @@ describe('errorHandler', () => {
 
     expect(res.status).toBe(500)
     expect(res.body).toEqual({ message: 'Internal server error' })
+  })
+
+  it('erro com status definido usa o status dele (como o body-parser)', async () => {
+    const res = await request(app).get('/ruim')
+
+    expect(res.status).toBe(400)
+    expect(res.body).toEqual({ message: 'JSON malformado' })
   })
 })

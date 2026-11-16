@@ -39,5 +39,22 @@ jobs:
       - name: Verificar tipos
         run: npm run typecheck
 
+      - name: Subir banco de dados
+        run: docker compose up -d database --wait
+        env:
+          POSTGRES_USER: gtech
+          POSTGRES_PASSWORD: gtech
+          POSTGRES_DB: gtech
+          APP_DB_USER: gtech_app
+          APP_DB_PASSWORD: gtech_app
+
+      - name: Aplicar migrations
+        run: npx prisma migrate deploy
+        env:
+          DIRECT_URL: postgresql://gtech:gtech@localhost:5432/gtech?schema=public
+
       - name: Executar testes
         run: npm run test:coverage
+        env:
+          PORT: "3000"
+          DATABASE_URL: postgresql://gtech_app:gtech_app@localhost:5432/gtech?schema=public
