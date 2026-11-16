@@ -2,4 +2,5 @@ node_modules/
 .env
 coverage/
 dist/
+generated/prisma/
 *.log
