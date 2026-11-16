@@ -48,6 +48,19 @@ services:
     volumes:
       - pgadmin_data:/var/lib/pgadmin
 
+  # teste de carga: NAO sobe no up normal — requer --profile smoke
+  k6:
+    image: grafana/k6:2.4.0
+    profiles: ["smoke"]
+    command: ["run", "/scripts/smoke.js"]
+    environment:
+      BASE_URL: http://api:3000
+    volumes:
+      - ./k6:/scripts:ro
+    depends_on:
+      api:
+        condition: service_healthy
+
 volumes:
   postgres_data:
   pgadmin_data:
