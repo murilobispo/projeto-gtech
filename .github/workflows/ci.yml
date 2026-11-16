@@ -58,3 +58,29 @@ jobs:
         env:
           PORT: "3000"
           DATABASE_URL: postgresql://gtech_app:gtech_app@localhost:5432/gtech?schema=public
+
+      - name: Relatório de cobertura como artefato
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage
+          path: coverage/
+
+  docker:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Baixar código
+        uses: actions/checkout@v4
+
+      - name: Construir imagem
+        run: docker build -t projeto-gtech:ci .
+
+      - name: Escanear vulnerabilidades (Trivy)
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          image-ref: projeto-gtech:ci
+          format: table
+          exit-code: "0"
+          ignore-unfixed: true
+          severity: CRITICAL,HIGH
