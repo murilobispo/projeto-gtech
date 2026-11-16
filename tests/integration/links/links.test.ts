@@ -127,3 +127,60 @@ describe('GET /l/:code', () => {
     expect(linha?.clicks).toBe(0)
   })
 })
+
+describe('GET /links/:code', () => {
+  it('devolve os metadados do link com os cliques', async () => {
+    const criado = await request(app)
+      .post('/links')
+      .send({ url: 'https://example.com' })
+    await request(app).get(`/l/${criado.body.code}`)
+
+    const res = await request(app).get(`/links/${criado.body.code}`)
+
+    expect(res.status).toBe(200)
+    expect(res.body.code).toBe(criado.body.code)
+    expect(res.body.url).toBe('https://example.com')
+    expect(res.body.shortUrl).toBe(
+      `http://localhost:${process.env.PORT}/l/${criado.body.code}`,
+    )
+    expect(res.body.clicks).toBe(1)
+    expect(res.body.expiresAt).toBeNull()
+    expect(res.body.createdAt).toBeDefined()
+  })
+
+  it('consultar stats nao incrementa cliques', async () => {
+    const criado = await request(app)
+      .post('/links')
+      .send({ url: 'https://example.com' })
+
+    await request(app).get(`/links/${criado.body.code}`)
+    await request(app).get(`/links/${criado.body.code}`)
+
+    const linha = await prisma.link.findUnique({
+      where: { code: criado.body.code },
+    })
+    expect(linha?.clicks).toBe(0)
+  })
+
+  it('responde 404 para code inexistente', async () => {
+    const res = await request(app).get('/links/naoexis')
+
+    expect(res.status).toBe(404)
+    expect(res.body).toEqual({ message: 'Link não encontrado' })
+  })
+
+  it('responde 404 para link expirado (semeado direto no banco)', async () => {
+    const code = generateCode()
+    await prisma.link.create({
+      data: {
+        code,
+        url: 'https://example.com',
+        expiresAt: new Date(Date.now() - 86_400_000),
+      },
+    })
+
+    const res = await request(app).get(`/links/${code}`)
+
+    expect(res.status).toBe(404)
+  })
+})
