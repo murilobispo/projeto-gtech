@@ -1,4 +1,5 @@
 import type { NextFunction, Request, Response } from 'express'
+import { logger } from '@/lib/logger'
 import { AppError } from '@/utils/AppError'
 
 export function errorHandler(
@@ -11,7 +12,7 @@ export function errorHandler(
     return res.status(err.statusCode).json({ message: err.message })
   }
 
-  console.error(err)
+  logger.error({ err }, 'erro não tratado')
 
   const status = (err as { status?: number }).status ?? 500
   const message = status >= 500 ? 'Internal server error' : err.message
