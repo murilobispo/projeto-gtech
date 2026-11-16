@@ -1,0 +1,169 @@
+openapi: 3.1.0
+info:
+  title: GTech — Encurtador de Links
+  version: 1.0.0
+  description: >
+    API do Projeto B (Full Cycle · Módulo 4). Cria links curtos, redireciona
+    com contagem de cliques e consulta metadados — leitura pura.
+servers:
+  - url: http://localhost:3000
+paths:
+  /health:
+    get:
+      summary: Healthcheck da API
+      responses:
+        "200":
+          description: API no ar
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [status]
+                properties:
+                  status:
+                    type: string
+                    example: ok
+  /links:
+    post:
+      summary: Cria um link curto
+      description: Valida a URL (http/https) e a expiracao (sempre futura), gera um code base62 de 7 caracteres e persiste.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateLinkInput"
+            example:
+              url: https://www.youtube.com/watch?v=dQw4w9WgXcQ
+              expiresAt: "2026-12-01T00:00:00Z"
+      responses:
+        "201":
+          description: Link criado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LinkCriado"
+        "400":
+          description: JSON malformado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErroGenerico"
+        "422":
+          description: Corpo invalido — erros por campo
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FieldErrors"
+  /l/{code}:
+    get:
+      summary: Redireciona para a URL original e conta o clique
+      description: "302 (nunca 301: o browser nao cacheia e a contagem continua correta). Link inexistente ou expirado responde 404."
+      parameters:
+        - name: code
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Code do link curto (base62, 7 caracteres)
+      responses:
+        "302":
+          description: Redirect — a URL original vem no header Location
+        "404":
+          description: Link inexistente ou expirado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErroGenerico"
+  /links/{code}:
+    get:
+      summary: Metadados do link — leitura pura, nao incrementa cliques
+      parameters:
+        - name: code
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Code do link curto
+      responses:
+        "200":
+          description: Metadados do link
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LinkStats"
+        "404":
+          description: Link inexistente ou expirado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErroGenerico"
+components:
+  schemas:
+    CreateLinkInput:
+      type: object
+      required: [url]
+      properties:
+        url:
+          type: string
+          format: uri
+          maxLength: 2048
+          description: URL http/https de destino
+        expiresAt:
+          type: string
+          format: date-time
+          description: Expiracao opcional (ISO 8601, sempre no futuro)
+    LinkCriado:
+      type: object
+      properties:
+        code:
+          type: string
+          example: aB3xK9p
+        shortUrl:
+          type: string
+          example: http://localhost:3000/l/aB3xK9p
+        url:
+          type: string
+          format: uri
+        expiresAt:
+          type: [string, "null"]
+          format: date-time
+    LinkStats:
+      type: object
+      properties:
+        code:
+          type: string
+        shortUrl:
+          type: string
+        url:
+          type: string
+          format: uri
+        clicks:
+          type: integer
+          example: 2
+        createdAt:
+          type: string
+          format: date-time
+        expiresAt:
+          type: [string, "null"]
+          format: date-time
+    FieldErrors:
+      type: object
+      description: Shape do zod flattenError — erros agrupados por campo
+      properties:
+        formErrors:
+          type: array
+          items:
+            type: string
+        fieldErrors:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              type: string
+    ErroGenerico:
+      type: object
+      properties:
+        message:
+          type: string
+          example: Link não encontrado

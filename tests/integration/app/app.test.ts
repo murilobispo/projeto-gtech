@@ -13,4 +13,17 @@ describe('app', () => {
       method: 'GET',
     })
   })
+
+  it('responde com headers de seguranca do helmet', async () => {
+    const res = await request(app).get('/health')
+
+    expect(res.headers['x-content-type-options']).toBe('nosniff')
+  })
+
+  it('serve o swagger ui em /docs', async () => {
+    const res = await request(app).get('/docs/')
+
+    expect(res.status).toBe(200)
+    expect(res.text).toContain('Swagger UI')
+  })
 })

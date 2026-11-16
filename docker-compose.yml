@@ -18,6 +18,23 @@ services:
       timeout: 5s
       retries: 5
 
+  api:
+    build: .
+    environment:
+      PORT: "3000"
+      DATABASE_URL: postgresql://${APP_DB_USER}:${APP_DB_PASSWORD}@database:5432/${POSTGRES_DB}?schema=public
+      DIRECT_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@database:5432/${POSTGRES_DB}?schema=public
+    ports:
+      - "3000:3000"
+    depends_on:
+      database:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:3000/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   pgadmin:
     image: dpage/pgadmin4:9
     environment:
