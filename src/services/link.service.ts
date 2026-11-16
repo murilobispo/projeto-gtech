@@ -37,3 +37,26 @@ export async function createLink(input: CreateLinkInput) {
     }
   }
 }
+
+export async function resolveLink(code: string) {
+  const link = await prisma.link.findUnique({
+    where: { code },
+  })
+
+  if (!link) {
+    return null
+  }
+
+  const expirado = link.expiresAt && link.expiresAt.getTime() < Date.now()
+
+  if (expirado) {
+    return null
+  }
+
+  await prisma.link.update({
+    where: { code },
+    data: { clicks: { increment: 1 } },
+  })
+
+  return { url: link.url }
+}
